@@ -353,7 +353,7 @@ document.getElementById('scene').appendChild(renderer.domElement);
 const FR=118; let aspect=innerWidth/innerHeight;
 const camera=new THREE.OrthographicCamera(-FR*aspect/2,FR*aspect/2,FR/2,-FR/2,-600,900);
 const HOME=new THREE.Vector3(88,76,88);
-camera.position.copy(HOME); camera.zoom=1.9; camera.updateProjectionMatrix();
+camera.position.copy(HOME); camera.zoom=1.5; camera.updateProjectionMatrix();
 
 const controls=new OrbitControls(camera,renderer.domElement);
 controls.enableDamping=true; controls.dampingFactor=.06;
@@ -888,7 +888,7 @@ function radialAnchor(){
   if(!sel) return null;
   if(sel.type==='pad') return new THREE.Vector3(sel.cell.x,2,sel.cell.z);
   if(sel.type==='node') return new THREE.Vector3(sel.node.x,sel.node.height+3,sel.node.z);
-  return new THREE.Vector3(0,56,0);
+  return new THREE.Vector3(0,18,0);   // mid-spire: the tip sits above the viewport at default zoom
 }
 function positionRadial(){
   const a=radialAnchor(); if(!a) return;
@@ -897,8 +897,9 @@ function positionRadial(){
     const spread=Math.min(1.05,.42*n);
     const ang=-Math.PI/2 + (n===1?0:(idx/(n-1)-.5)*spread*2);
     const R=76;
-    el.style.left=(p.x+Math.sin(ang)*R)+'px';
-    el.style.top =(p.y-Math.cos(ang)*R*0.72-14)+'px';
+    /* clamp into the viewport so a menu on a tall/edge target stays reachable */
+    el.style.left=clamp(p.x+Math.sin(ang)*R, 44, innerWidth-44)+'px';
+    el.style.top =clamp(p.y-Math.cos(ang)*R*0.72-14, 78, innerHeight-72)+'px';
   });
 }
 function refreshRadialAffordability(){
@@ -1237,7 +1238,7 @@ bAmb.addEventListener('click',()=>{ A.init(); A.resume(); if(!A.on){A.on=true;bA
 document.getElementById('vol').addEventListener('input',e=>{ A.init(); A.vol_(e.target.value/100); });
 document.getElementById('b-home').addEventListener('click',()=>{
   camera.position.copy(HOME); controls.target.set(0,7,0);
-  camera.zoom=clamp(1.9/Math.pow(1.19,G.sector-1),.5,6); camera.updateProjectionMatrix(); controls.update();
+  camera.zoom=clamp(1.5/Math.pow(1.19,G.sector-1),.5,6); camera.updateProjectionMatrix(); controls.update();
 });
 document.getElementById('b-restart').addEventListener('click',()=>location.reload());
 addEventListener('resize',()=>{
