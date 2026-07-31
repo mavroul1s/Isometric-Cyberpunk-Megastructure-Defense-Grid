@@ -23,6 +23,7 @@
   :root{
     --bg:#040408; --cyan:#00f0ff; --red:#ff1144; --green:#00ff66; --amber:#ffaa00; --violet:#bb44ff;
     --accent:#00f0ff; --accent-dim:rgba(0,240,255,.35); --accent-faint:rgba(0,240,255,.09);
+    --aqua:#00ffcc; --magenta:#ff44cc; --ice:#5fd8bf;
   }
   html[data-mode="thermal"]{ --accent:#ffaa00; --accent-dim:rgba(255,170,0,.35); --accent-faint:rgba(255,170,0,.09); }
   html[data-mode="night"]  { --accent:#00ff66; --accent-dim:rgba(0,255,102,.35); --accent-faint:rgba(0,255,102,.09); }
@@ -90,21 +91,27 @@
   .btn:hover{ background:var(--accent-faint); border-color:var(--accent); }
   .btn.on{ background:var(--accent); color:#02060a; text-shadow:none; }
 
-  /* ---------- abilities (rigid layout, no reflow) ---------- */
-  #abils{ position:absolute; left:16px; bottom:16px; z-index:30; display:flex; gap:7px; align-items:flex-end; }
-  .abil{ position:relative; flex:0 0 54px; width:54px; height:54px; cursor:pointer; overflow:hidden;
+  /* ---------- abilities ----------
+     Every element is absolutely positioned at a fixed offset, so nothing here
+     participates in flow: the buttons cannot shift, resize or overlap no matter
+     what class/state changes. Icons are inline SVG (no emoji font fallback). */
+  #abils{ position:absolute; left:16px; bottom:16px; z-index:30; width:180px; height:54px; }
+  .abil{ position:absolute; top:0; width:54px; height:54px; cursor:pointer; overflow:hidden;
     border:1px solid var(--accent-dim); background:rgba(3,10,16,.8); backdrop-filter:blur(3px);
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    transition:border-color .15s, box-shadow .15s, background-color .15s; contain:layout paint; }
+    transition:border-color .15s, box-shadow .15s, background-color .15s; }
+  #ab-pulse{ left:0 } #ab-over{ left:63px } #ab-trace{ left:126px }
   .abil:hover{ border-color:var(--accent); box-shadow:0 0 14px var(--accent-dim); }
-  .abil .ic{ font-size:19px; line-height:22px; height:22px; pointer-events:none; }
-  .abil .k{ font-family:'Orbitron',monospace; font-size:7.5px; opacity:.55; line-height:10px;
-    height:10px; margin-top:3px; letter-spacing:.1em; pointer-events:none; }
-  /* scaleY instead of height: no transition to restart, no sub-pixel reflow */
+  .abil .ic{ position:absolute; left:0; right:0; top:10px; height:24px; pointer-events:none;
+    display:flex; align-items:center; justify-content:center; }
+  .abil .ic svg{ width:23px; height:23px; display:block; }
+  .abil .k{ position:absolute; left:0; right:0; bottom:5px; text-align:center; pointer-events:none;
+    font-family:'Orbitron',monospace; font-size:7.5px; line-height:9px; opacity:.55; letter-spacing:.1em; }
   .abil .cd{ position:absolute; inset:0; background:rgba(0,0,0,.72); pointer-events:none;
     transform-origin:bottom; transform:scaleY(0); will-change:transform; }
   .abil.rdy{ border-color:var(--accent); box-shadow:0 0 10px var(--accent-dim); }
-  .abil.act{ background:rgba(0,255,102,.22); border-color:var(--green); box-shadow:0 0 16px var(--green); }
+  /* NOTE: must not be named .act — the radial menu owns that class and its
+     absolute/margin/animation rules would displace and resize these buttons. */
+  .abil.hot{ background:rgba(0,255,102,.22); border-color:var(--green); box-shadow:0 0 16px var(--green); }
   #abtip{ position:absolute; left:16px; bottom:80px; z-index:31; display:none; pointer-events:none;
     font-size:10.5px; line-height:1.5; padding:5px 9px; white-space:nowrap;
     background:rgba(3,9,14,.94); border:1px solid var(--accent-dim); backdrop-filter:blur(3px); }
@@ -119,6 +126,12 @@
     border:1.5px solid var(--accent); background:rgba(3,12,18,.9);
     display:flex; align-items:center; justify-content:center; font-size:21px;
     box-shadow:0 0 16px var(--accent-dim), inset 0 0 14px var(--accent-faint); }
+  .act .disc svg{ width:24px; height:24px; display:block; }
+  .tile .ti svg{ width:21px; height:21px; display:block; margin:0 auto; }
+  .ilbl{ display:inline-block; width:12px; height:12px; vertical-align:-2px; }
+  .ilbl svg{ width:12px; height:12px; display:block; }
+  #gear svg{ width:16px; height:16px; display:block; }
+  #helpbtn svg{ width:12px; height:12px; display:inline-block; vertical-align:-2px; margin-right:3px; }
   .act .nm{ font-family:'Orbitron',monospace; font-size:7.5px; letter-spacing:.1em; margin-top:4px; opacity:.9; }
   .act .cost{ font-size:10px; margin-top:1px; }
   .act.no .disc{ border-color:rgba(255,60,90,.5); box-shadow:none; opacity:.5; }
@@ -165,6 +178,7 @@
     background:rgba(255,170,0,.06); font-size:11.5px; line-height:1.6; }
   #tut b.c{ color:var(--cyan) } #tut b.g{ color:var(--green) } #tut b.a{ color:var(--amber) }
   #tut b.r{ color:var(--red) } #tut b.v{ color:var(--violet) } #tut b.o{ color:#ff6a00 } #tut b.y{ color:#ffee00 }
+  #tut b.aq{ color:var(--aqua) } #tut b.m{ color:var(--magenta) }
   #tutclose{ position:absolute; top:14px; right:16px; font-family:'Orbitron',monospace; font-size:10px;
     letter-spacing:.16em; border:1px solid var(--accent-dim); padding:6px 12px; cursor:pointer; }
   #tutclose:hover{ background:var(--accent-faint); border-color:var(--accent); }
@@ -215,16 +229,16 @@
 <div id="banner"><div class="t" id="banner-t"></div><div style="font-size:10px;letter-spacing:.3em;margin-top:8px" id="banner-s"></div></div>
 
 <div id="abils">
-  <div class="abil" id="ab-pulse"><div class="ic">◎</div><div class="k">Q</div><div class="cd"></div></div>
-  <div class="abil" id="ab-over"><div class="ic">⚡</div><div class="k">W</div><div class="cd"></div></div>
-  <div class="abil" id="ab-trace"><div class="ic">◈</div><div class="k">E</div><div class="cd"></div></div>
+  <div class="abil" id="ab-pulse"><div class="ic"></div><div class="k">Q</div><div class="cd"></div></div>
+  <div class="abil" id="ab-over"><div class="ic"></div><div class="k">W</div><div class="cd"></div></div>
+  <div class="abil" id="ab-trace"><div class="ic"></div><div class="k">E</div><div class="cd"></div></div>
 </div>
 <div id="abtip"></div>
 
 <!-- ===================== TUTORIAL ===================== -->
 <div id="tutwrap">
   <div id="tut">
-    <div id="tutclose">CLOSE ✕</div>
+    <div id="tutclose">CLOSE</div>
     <h1>SECTOR 07 — GRID EXPANSION</h1>
     <div class="sub">ANANKE DEFENSE SYSTEMS // OPERATOR BRIEFING</div>
 
@@ -241,25 +255,39 @@
         <h2>THE LOOP</h2>
         <div class="row"><div class="kk">EARN</div><div class="vv">Nodes pay out per second. Click the <b class="c">core spire</b> to harvest, and grab <b class="a">◆ data caches</b> that ride the transit tubes.</div></div>
         <div class="row"><div class="kk">SPEND</div><div class="vv">Build new nodes, upgrade them to tier 5, add firewalls, buy drones.</div></div>
-        <div class="row"><div class="kk">EXPAND</div><div class="vv">Click the core spire → <b class="g">⊕ EXPAND</b> to claim the next ring. That is how you win.</div></div>
+        <div class="row"><div class="kk">EXPAND</div><div class="vv">Click the core spire → <b class="g">EXPAND</b> to claim the next ring. That is how you win.</div></div>
         <div class="row"><div class="kk">DEFEND</div><div class="vv">Click a breached node repeatedly to purge it before its timer runs out.</div></div>
       </div>
 
       <div>
         <h2>NODE CLASSES</h2>
-        <div class="row"><div class="kk">⚡ REACTOR</div><div class="vv">Makes power. Everything else consumes it — run out and all yield throttles.</div></div>
-        <div class="row"><div class="kk">⛨ BASTION</div><div class="vv">Gives +2 firewall to every node inside its green ring.</div></div>
-        <div class="row"><div class="kk">↑ SPIRE</div><div class="vv">+15% yield to each node it links to.</div></div>
-        <div class="row"><div class="kk">⬡ ARCOLOGY</div><div class="vv">Huge yield, huge power draw. <b class="c">▮ MONOLITH</b> earns more but attracts breaches.</div></div>
+        <div class="row"><div class="kk">REACTOR</div><div class="vv">Makes power. Everything else consumes it — run out and all yield throttles.</div></div>
+        <div class="row"><div class="kk">BASTION</div><div class="vv">Gives +2 firewall to every node inside its green ring.</div></div>
+        <div class="row"><div class="kk">SPIRE</div><div class="vv">+15% yield to each node it links to.</div></div>
+        <div class="row"><div class="kk">ARCOLOGY</div><div class="vv">Huge yield, huge power draw. <b class="c">MONOLITH</b> earns more but attracts breaches.</div></div>
         <div class="row"><div class="kk">LINKS</div><div class="vv">Nodes wired by tubes earn <b class="g">+8% each</b>. An isolated node loses <b class="r">25%</b> — build close together.</div></div>
       </div>
 
       <div>
-        <h2>THREATS</h2>
+        <h2>HOSTILES</h2>
         <div class="row"><div class="kk">LEECH</div><div class="vv"><b class="r">Drains credits.</b> Firewalls block most of it.</div></div>
-        <div class="row"><div class="kk">WORM</div><div class="vv"><b class="o">Spreads</b> to a linked node if you let it time out.</div></div>
-        <div class="row"><div class="kk">BLACKOUT</div><div class="vv"><b class="y">Zeroes the node's income</b> and ignores firewalls entirely — drones are the answer.</div></div>
-        <div class="row"><div class="kk">GHOST</div><div class="vv"><b class="v">Invisible in Tactical Cyan.</b> If credits drain with nothing on screen, switch optics to find it.</div></div>
+        <div class="row"><div class="kk">WORM</div><div class="vv"><b class="o">Spreads</b> to a linked node if it times out.</div></div>
+        <div class="row"><div class="kk">SIPHON</div><div class="vv"><b class="aq">Bleeds power off the grid.</b> Enough of them and the whole sector browns out.</div></div>
+        <div class="row"><div class="kk">GHOST</div><div class="vv"><b class="v">Invisible in Tactical Cyan.</b> Credits draining with nothing on screen? Switch optics.</div></div>
+        <div class="row"><div class="kk">BLACKOUT</div><div class="vv"><b class="y">Zeroes the node's income</b> and ignores firewalls — drones counter it.</div></div>
+        <div class="row"><div class="kk">JAMMER</div><div class="vv"><b class="m">Blinds every drone in its radius</b> and drains power. Purge it by hand.</div></div>
+      </div>
+
+      <div>
+        <h2>THREAT LEVEL</h2>
+        <div class="row"><div class="vv">Threat is the difficulty dial, top right. It <b class="a">unlocks which hostiles exist</b>,
+          how often they arrive and how hard they hit.</div></div>
+        <div class="row"><div class="kk">RISES</div><div class="vv">Losing a node · using Overclock.</div></div>
+        <div class="row"><div class="kk">FALLS</div><div class="vv">Purging breaches · simply surviving (it decays).</div></div>
+        <div class="row"><div class="kk">TIERS</div><div class="vv"><b class="g">SECURE</b> → <b class="g">GUARDED</b> (worms) →
+          <b class="a">ELEVATED</b> (siphons) → <b class="a">HIGH</b> (ghosts) → <b class="r">SEVERE</b> (blackouts) →
+          <b class="r">CRITICAL</b> (jammers) → <b class="r">OVERRUN</b> (double spawns).</div></div>
+        <div class="row"><div class="kk">100%</div><div class="vv"><b class="r">Lockdown</b> — oversight seizes 18% of your credits.</div></div>
       </div>
 
       <div>
@@ -283,16 +311,17 @@
   <div class="stat" style="color:var(--green)"><b id="s-rate" style="font-size:13px">+0.0</b><s>/SEC</s>
     <span id="s-steal">−0.0</span></div>
   <div class="sep"></div>
-  <div class="stat"><s>⚡</s><b id="s-pow" style="font-size:13px">0/0</b></div>
+  <div class="stat"><s>PWR</s><b id="s-pow" style="font-size:13px">0/0</b></div>
   <div class="sep"></div>
   <div class="stat"><s>SECTOR</s><b id="s-sector">1</b><s id="s-nodes" style="margin-left:3px">0 PLOTS</s></div>
   <div class="sep"></div>
-  <div class="stat"><s>THREAT</s><div id="threat-wrap"></div></div>
+  <div class="stat"><s>THREAT</s><div id="threat-wrap"></div>
+    <b id="s-threat" style="font-size:11px">SECURE</b><s id="s-threat-note" style="margin-left:2px">BASELINE</s></div>
   <div class="sep"></div>
-  <div id="helpbtn">? HELP</div>
-  <div id="auto">▶ AUTO</div>
+  <div id="helpbtn">HELP</div>
+  <div id="auto">AUTO</div>
   <div style="position:relative">
-    <div id="gear">⚙</div>
+    <div id="gear"></div>
     <div id="tray">
       <div style="font-size:8.5px;letter-spacing:.2em;opacity:.5">OPTICS</div>
       <div style="display:flex;gap:4px">
@@ -353,7 +382,7 @@ const BAL={
   intrusionEvery:[8,14], intrusionHp:4, intrusionTime:15,
   stealBase:2.6, stealFailMul:9,
   fwBlockPer:0.17, fwMaxBlock:0.88,
-  droneDps:0.55, droneRange:24,
+  droneDps:0.55, droneRange:24, jamRadius:46,
   threatPerFail:20, threatPerPurge:-10, threatDecay:-1.6,
   citizens:1400, vehicles:260, autoTick:0.55,
   overDur:20, overThreat:22
@@ -367,7 +396,8 @@ const hex=c=>'#'+c.toString(16).padStart(6,'0');
 function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a);
   t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 
-const PAL={cyan:0x00f0ff,red:0xff1144,green:0x00ff66,amber:0xffaa00,violet:0xbb44ff,orange:0xff6a00,yellow:0xffee00};
+const PAL={cyan:0x00f0ff,red:0xff1144,green:0x00ff66,amber:0xffaa00,violet:0xbb44ff,orange:0xff6a00,
+  yellow:0xffee00,aqua:0x00ffcc,magenta:0xff44cc,ice:0x2f8f7d};
 const MODES={
   tactical:{key:'tactical',accent:PAL.cyan,fog:0x040412,sky:0x040408,drone:PAL.amber,tube:PAL.cyan},
   thermal :{key:'thermal', accent:PAL.amber,fog:0x100612,sky:0x060206,drone:0xffffff,tube:PAL.amber},
@@ -375,28 +405,73 @@ const MODES={
 };
 let mode=MODES.tactical;
 
+/* ---------- inline SVG icon set (no emoji: fixed metrics, never reflows) ---------- */
+const _svg=d=>`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const ICON={
+  pulse  :_svg('<circle cx="12" cy="12" r="2.6"/><circle cx="12" cy="12" r="6.6" opacity=".62"/><circle cx="12" cy="12" r="10.4" opacity=".3"/>'),
+  over   :_svg('<path d="M13.2 2.2 5.4 13.1h5.3l-1 8.7 7.9-11.2h-5.3z"/>'),
+  trace  :_svg('<circle cx="12" cy="12" r="6.2"/><path d="M12 1.2v3.4M12 19.4v3.4M1.2 12h3.4M19.4 12h3.4"/><circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none"/>'),
+  hab    :_svg('<rect x="6.5" y="3" width="11" height="5"/><rect x="4.8" y="9.2" width="14.4" height="5"/><rect x="3" y="15.4" width="18" height="5.8"/>'),
+  data   :_svg('<rect x="7.4" y="2.2" width="9.2" height="19.6"/><path d="M9.8 6h4.4M9.8 9.6h4.4M9.8 13.2h4.4M9.8 16.8h4.4"/>'),
+  arco   :_svg('<path d="M12 2.2 20.6 7v10L12 21.8 3.4 17V7z"/><path d="M12 8.2 16.4 10.7v4.6L12 17.8l-4.4-2.5v-4.6z" opacity=".55"/>'),
+  reactor:_svg('<circle cx="12" cy="12" r="2.8"/><ellipse cx="12" cy="12" rx="10" ry="4.3"/><ellipse cx="12" cy="12" rx="10" ry="4.3" transform="rotate(60 12 12)"/>'),
+  bastion:_svg('<path d="M12 2.2 19.6 5v6.9c0 4.9-3.3 8.3-7.6 9.9-4.3-1.6-7.6-5-7.6-9.9V5z"/>'),
+  spire  :_svg('<path d="M12 1.4 15.8 18H8.2z"/><path d="M5.2 21.6h13.6M8.9 13.4h6.2"/>'),
+  nexus  :_svg('<rect x="3.2" y="4.8" width="5.6" height="17"/><rect x="15.2" y="8.2" width="5.6" height="13.6"/><path d="M8.8 11.2h6.4M8.8 16.2h6.4"/>'),
+  hangar :_svg('<path d="M2.8 21.4h18.4"/><path d="M5.2 21.4V9.2L12 4.2l6.8 5v12.2"/><path d="M9 21.4v-5.8h6v5.8"/>'),
+  build  :_svg('<rect x="3.2" y="3.2" width="17.6" height="17.6"/><path d="M12 8v8M8 12h8"/>'),
+  upgrade:_svg('<path d="M12 3.6 19.4 12h-4.2v8.4H8.8V12H4.6z"/>'),
+  fw     :_svg('<path d="M12 2.2 19.6 5v6.9c0 4.9-3.3 8.3-7.6 9.9-4.3-1.6-7.6-5-7.6-9.9V5z"/><path d="M4.6 10.4h14.8M12 5.2v15.6" opacity=".55"/>'),
+  repair :_svg('<path d="M12 4.6v14.8M4.6 12h14.8"/>'),
+  max    :_svg('<path d="M12 2.4l2.8 6.1 6.7.8-4.9 4.6 1.3 6.6L12 17.3l-5.9 3.2 1.3-6.6-4.9-4.6 6.7-.8z"/>'),
+  harvest:_svg('<path d="M20.4 12a8.4 8.4 0 1 1-2.5-6"/><path d="M20.4 3.6v5.5h-5.5"/>'),
+  expand :_svg('<circle cx="12" cy="12" r="3.8"/><path d="M12 1.4v3.6M12 19v3.6M1.4 12H5M19 12h3.6M4.6 4.6 7.2 7.2M16.8 16.8l2.6 2.6M19.4 4.6 16.8 7.2M7.2 16.8l-2.6 2.6"/>'),
+  drone  :_svg('<path d="M12 9.4 14.6 12 12 14.6 9.4 12z"/><path d="M9.4 9.4 5.6 5.6M14.6 9.4l3.8-3.8M9.4 14.6l-3.8 3.8M14.6 14.6l3.8 3.8"/><circle cx="4.2" cy="4.2" r="2"/><circle cx="19.8" cy="4.2" r="2"/><circle cx="4.2" cy="19.8" r="2"/><circle cx="19.8" cy="19.8" r="2"/>'),
+  gear   :_svg('<circle cx="12" cy="12" r="3.2"/><path d="M12 1.6v3.2M12 19.2v3.2M1.6 12h3.2M19.2 12h3.2M4.8 4.8 7 7M17 17l2.2 2.2M19.2 4.8 17 7M7 17l-2.2 2.2"/>'),
+  help   :_svg('<circle cx="12" cy="12" r="9.6"/><path d="M9.3 9.2a2.8 2.8 0 1 1 3.6 2.7c-.7.25-.95.8-.95 1.45v.7"/><circle cx="12" cy="17.4" r="1" fill="currentColor" stroke="none"/>')
+};
+const ilbl=k=>`<span class="ilbl">${ICON[k]}</span>`;
+
 const ROLES={
-  hab    :{arch:'stack',pre:'HS',name:'HAB-STACK',   ic:'▤',yld:1.00,draw:1.0,gen:0,cost:1.00,desc:'BALANCED YIELD'},
-  data   :{arch:'slab', pre:'ML',name:'DATA MONOLITH',ic:'▮',yld:1.80,draw:2.0,gen:0,cost:1.35,desc:'HIGH YIELD · TARGETED'},
-  arco   :{arch:'hex',  pre:'HX',name:'HEX ARCOLOGY',ic:'⬡',yld:2.45,draw:3.4,gen:0,cost:1.85,desc:'HUGE YIELD · POWER HOG'},
-  reactor:{arch:'cyl',  pre:'CT',name:'FUSION REACTOR',ic:'⚡',yld:0, draw:0, gen:9,cost:1.25,desc:'GENERATES POWER'},
-  bastion:{arch:'dome', pre:'DB',name:'SEC-BASTION', ic:'⛨',yld:0.45,draw:1.4,gen:0,cost:1.50,desc:'+2 ICE IN RADIUS'},
-  spire  :{arch:'spire',pre:'NS',name:'NEEDLE SPIRE',ic:'↑',yld:0.60,draw:1.2,gen:0,cost:1.40,desc:'+15% TO LINKED'},
-  nexus  :{arch:'twin', pre:'TN',name:'TWIN NEXUS',  ic:'⇅',yld:0.85,draw:1.2,gen:0,cost:1.30,desc:'MORE DATA CACHES'},
-  hangar :{arch:'zig',  pre:'ZP',name:'DRONE HANGAR',ic:'✈',yld:0.50,draw:1.5,gen:0,cost:1.45,desc:'+DRONES · +DMG'}
+  hab    :{arch:'stack',pre:'HS',name:'HAB-STACK',   ic:'hab',    yld:1.00,draw:1.0,gen:0,cost:1.00,desc:'BALANCED YIELD'},
+  data   :{arch:'slab', pre:'ML',name:'DATA MONOLITH',ic:'data',  yld:1.80,draw:2.0,gen:0,cost:1.35,desc:'HIGH YIELD · TARGETED'},
+  arco   :{arch:'hex',  pre:'HX',name:'HEX ARCOLOGY',ic:'arco',   yld:2.45,draw:3.4,gen:0,cost:1.85,desc:'HUGE YIELD · POWER HOG'},
+  reactor:{arch:'cyl',  pre:'CT',name:'FUSION REACTOR',ic:'reactor',yld:0, draw:0, gen:9,cost:1.25,desc:'GENERATES POWER'},
+  bastion:{arch:'dome', pre:'DB',name:'SEC-BASTION', ic:'bastion',yld:0.45,draw:1.4,gen:0,cost:1.50,desc:'+2 ICE IN RADIUS'},
+  spire  :{arch:'spire',pre:'NS',name:'NEEDLE SPIRE',ic:'spire',  yld:0.60,draw:1.2,gen:0,cost:1.40,desc:'+15% TO LINKED'},
+  nexus  :{arch:'twin', pre:'TN',name:'TWIN NEXUS',  ic:'nexus',  yld:0.85,draw:1.2,gen:0,cost:1.30,desc:'MORE DATA CACHES'},
+  hangar :{arch:'zig',  pre:'ZP',name:'DRONE HANGAR',ic:'hangar', yld:0.50,draw:1.5,gen:0,cost:1.45,desc:'+DRONES · +DMG'}
 };
 const ROLEKEYS=Object.keys(ROLES);
+
+/* ---------- hostiles. `min` is the THREAT level that unlocks the type ---------- */
 const BTYPE={
-  leech   :{name:'LEECH',   col:PAL.red,   steal:1.00,hp:1.0,time:1.00,fw:true },
-  worm    :{name:'WORM',    col:PAL.orange,steal:0.60,hp:1.2,time:0.85,fw:true, spreads:true},
-  blackout:{name:'BLACKOUT',col:PAL.yellow,steal:0,   hp:1.6,time:1.20,fw:false,killYield:true},
-  ghost   :{name:'GHOST',   col:PAL.violet,steal:0.75,hp:1.0,time:1.60,fw:true, hidden:true}
+  leech   :{name:'LEECH',   col:PAL.red,    steal:1.00,hp:1.0, time:1.00,fw:true, min:0,  w:10},
+  worm    :{name:'WORM',    col:PAL.orange, steal:0.60,hp:1.2, time:0.85,fw:true, min:8,  w:6, spreads:true},
+  siphon  :{name:'SIPHON',  col:PAL.aqua,   steal:0,   hp:1.15,time:1.15,fw:true, min:18, w:7, power:2.4},
+  ghost   :{name:'GHOST',   col:PAL.violet, steal:0.75,hp:1.0, time:1.60,fw:true, min:30, w:5, hidden:true},
+  blackout:{name:'BLACKOUT',col:PAL.yellow, steal:0,   hp:1.6, time:1.20,fw:false,min:42, w:5, killYield:true},
+  jammer  :{name:'JAMMER',  col:PAL.magenta,steal:0.35,hp:1.35,time:1.05,fw:true, min:58, w:5, jams:true, power:1.1}
 };
+/* THREAT is the difficulty dial: it gates which hostiles exist, how fast they
+   arrive and how hard they hit. Purging lowers it, failures and overclock raise it. */
+const THREAT_TIERS=[
+  {t:0, name:'SECURE',  col:'var(--green)',note:'LEECHES ONLY'},
+  {t:8, name:'GUARDED', col:'var(--green)',note:'+WORMS'},
+  {t:18,name:'ELEVATED',col:'var(--amber)',note:'+SIPHONS'},
+  {t:30,name:'HIGH',    col:'var(--amber)',note:'+GHOSTS'},
+  {t:42,name:'SEVERE',  col:'var(--red)',  note:'+BLACKOUTS'},
+  {t:58,name:'CRITICAL',col:'var(--red)',  note:'+JAMMERS'},
+  {t:74,name:'OVERRUN', col:'var(--red)',  note:'DOUBLE SPAWNS'}
+];
+const threatTier=()=>{ let r=THREAT_TIERS[0]; for(const x of THREAT_TIERS) if(G.threat>=x.t) r=x; return r; };
+const threatMul     =()=>1+G.threat/110;   /* drain + power siphon strength */
+const threatSpawnMul=()=>1+G.threat/90;    /* how often hostiles arrive */
 function rollBreachType(){
-  const s=G.sector;
-  const w=[['leech',10],['worm',s>=2?5:0],['blackout',s>=3?4:0],['ghost',s>=2?4:0]];
-  const tot=w.reduce((a,b)=>a+b[1],0); let r=Math.random()*tot;
-  for(const [k,v] of w){ r-=v; if(r<=0) return k; }
+  const opts=[];
+  for(const k in BTYPE){ const B=BTYPE[k]; if(G.threat>=B.min) opts.push([k,B.w]); }
+  const tot=opts.reduce((a,b)=>a+b[1],0); let r=Math.random()*tot;
+  for(const [k,v] of opts){ r-=v; if(r<=0) return k; }
   return 'leech';
 }
 
@@ -538,9 +613,24 @@ const costDrone  =()=>Math.floor(BAL.droneBase*Math.pow(BAL.droneGrowth,Math.max
 const costExpand =()=>Math.floor(BAL.expandBase*Math.pow(BAL.expandGrowth,G.sector-1));
 const costRepair =n=>Math.floor(BAL.repairMul*n.tier);
 const sectorRadius=()=>G.sector*BAL.band+20;
-const powerGen =()=>BAL.corePower+G.nodes.reduce((s,n)=>s+(n.offline?0:ROLES[n.role].gen*n.tier),0);
+const powerRaw =()=>BAL.corePower+G.nodes.reduce((s,n)=>s+(n.offline?0:ROLES[n.role].gen*n.tier),0);
+/* SIPHON / JAMMER bleed generation straight off the grid — enough of them and
+   the whole sector browns out, throttling every node's yield at once. */
+const powerLoss=()=>G.intrusions.reduce((s,n)=>{
+  const B=BTYPE[n.intr.type]; if(!B.power) return s;
+  return s+B.power*G.sector*threatMul()*(B.fw?(1-fwBlock(n)):1);
+},0);
+const powerGen =()=>Math.max(0,powerRaw()-powerLoss());
 const powerDraw=()=>G.nodes.reduce((s,n)=>s+(n.offline?0:ROLES[n.role].draw*n.tier),0);
 function powerMul(){ const g=powerGen(),d=powerDraw(); return d<=g?1:Math.max(BAL.brownoutFloor,g/d); }
+/* a JAMMER blinds every drone within its radius — those breaches need manual clicks */
+function droneJammed(n){
+  for(const j of G.intrusions){
+    if(!j.intr||!BTYPE[j.intr.type].jams) continue;
+    if(Math.hypot(j.x-n.x,j.z-n.z)<=BAL.jamRadius) return true;
+  }
+  return false;
+}
 const roleCount=r=>G.nodes.filter(n=>n.role===r&&!n.offline).length;
 function effFw(n){
   let ice=n.fw;
@@ -565,7 +655,7 @@ const income=()=>G.nodes.reduce((s,n)=>s+nodeYield(n),0)*powerMul()*(G.overT>0?2
 function stealRate(n){
   if(!n.intr) return 0;
   const B=BTYPE[n.intr.type];
-  return BAL.stealBase*G.sector*B.steal*(B.fw?(1-fwBlock(n)):1);
+  return BAL.stealBase*G.sector*B.steal*threatMul()*(B.fw?(1-fwBlock(n)):1);
 }
 const totalSteal=()=>G.intrusions.reduce((s,n)=>s+stealRate(n),0);
 const droneDmgMul=()=>Math.min(2,1+BAL.hangarDmg*roleCount('hangar'));
@@ -794,19 +884,19 @@ function nodeMesh(n){
     bulb.position.y=H+1; g.add(bulb); g.userData.beacon=bulb;
   }
   if(n.fw>0){
-    const rr=12+T*1.2, hh=H*1.04;
-    const fm=new THREE.MeshBasicMaterial({color:PAL.green,transparent:true,opacity:.03+n.fw*.022,
-      side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending});
-    const sh=new THREE.Mesh(new THREE.CylinderGeometry(rr,rr,hh,10,1,true),fm);
-    sh.position.y=hh/2; g.add(sh); g.userData.fwShell=fm;
-    const rg=[];
-    for(let i=0;i<n.fw&&i<5;i++){
-      const t=new THREE.TorusGeometry(rr,.09,4,28);
-      t.applyMatrix4(TRS(0,hh*(i+1)/(n.fw+1),0,Math.PI/2)); rg.push(t);
+    /* ICE marker: one small pylon per layer plus a hairline base ring.
+       Deliberately understated — instrumentation, not a glowing green cage. */
+    const lv=Math.min(n.fw,5), rr=8.4+T*.8, parts=[];
+    for(let i=0;i<lv;i++){
+      const a=(i/lv)*6.2832+.45, px=Math.cos(a)*rr, pz=Math.sin(a)*rr, ph=1.7+T*.2;
+      const st=new THREE.BoxGeometry(.32,ph,.32); st.applyMatrix4(TRS(px,ph/2,pz)); parts.push(st);
+      const cap=new THREE.BoxGeometry(.6,.15,.6); cap.applyMatrix4(TRS(px,ph+.11,pz)); parts.push(cap);
     }
-    const mg=mergeGeometries(rg,false); rg.forEach(x=>x.dispose());
-    if(mg){ const rm=new THREE.MeshBasicMaterial({color:PAL.green,transparent:true,opacity:.34});
-      g.add(new THREE.Mesh(mg,rm)); g.userData.accents.push(rm); }
+    const ring=new THREE.TorusGeometry(rr,.045,4,44); ring.applyMatrix4(TRS(0,.22,0,Math.PI/2)); parts.push(ring);
+    const mg=mergeGeometries(parts,false); parts.forEach(x=>x.dispose());
+    if(mg){ /* own material, kept out of userData.accents so styleNode never recolours it */
+      const fm=new THREE.MeshBasicMaterial({color:PAL.ice,transparent:true,opacity:.55});
+      g.add(new THREE.Mesh(mg,fm)); g.userData.fwMat=fm; }
   }
   n.height=H;
   g.position.set(n.x,0,n.z); g.rotation.y=n.rot;
@@ -982,32 +1072,47 @@ const alertCol=new THREE.Mesh(new THREE.CylinderGeometry(2.6,2.6,260,18,1,true),
   new THREE.MeshBasicMaterial({color:PAL.red,transparent:true,opacity:0,side:THREE.DoubleSide,
     blending:THREE.AdditiveBlending,depthWrite:false}));
 alertCol.visible=false; world.add(alertCol);
+/* magenta ring showing the area a JAMMER has blinded to drones */
+const jamRings=new THREE.Group(); world.add(jamRings);
+for(let i=0;i<3;i++){
+  const m=new THREE.Mesh(new THREE.RingGeometry(BAL.jamRadius*.985,BAL.jamRadius,90),
+    new THREE.MeshBasicMaterial({color:PAL.magenta,side:THREE.DoubleSide,transparent:true,
+      opacity:0,depthWrite:false}));
+  m.rotation.x=-Math.PI/2; m.visible=false; jamRings.add(m);
+}
 
 function startBreach(n,type){
   const B=BTYPE[type];
-  const hp=Math.max(2,(BAL.intrusionHp+Math.floor(G.sector*.5))*B.hp-effFw(n)*.4);
+  const hp=Math.max(2,(BAL.intrusionHp+Math.floor(G.sector*.5))*B.hp*(1+G.threat/180)-effFw(n)*.4);
   n.intr={type,hp,max:hp,t:BAL.intrusionTime*B.time,maxT:BAL.intrusionTime*B.time,drip:0};
   n.stolen=0; G.intrusions.push(n);
   G.drones.slice().sort((a,b)=>a.position.distanceTo(new THREE.Vector3(n.x,0,n.z))
     -b.position.distanceTo(new THREE.Vector3(n.x,0,n.z))).slice(0,4).forEach(d=>d.userData.target=n);
 }
-function spawnIntrusion(){
+function spawnOne(){
   const avail=G.nodes.filter(n=>!n.offline&&!n.intr);
   if(!avail.length) return;
   const pool=[]; avail.forEach(n=>{ pool.push(n); if(n.role==='data') pool.push(n,n); });
-  const n=pick(pool), type=rollBreachType();
+  const n=pick(pool), type=rollBreachType(), B=BTYPE[type];
   startBreach(n,type);
-  if(BTYPE[type].hidden){ A.ghost(); toast('⚠ UNKNOWN SIGNATURE — SWITCH OPTICS TO LOCATE','violet'); }
-  else{
-    A.warn(); const B=BTYPE[type];
-    toast(B.killYield?`⚠ ${B.name} — ${n.desig} YIELD OFFLINE · FIREWALL USELESS`
-      :`⚠ ${B.name} — ${n.desig} DRAINING ⏣${stealRate(n).toFixed(1)}/s`,'red');
-    document.getElementById('alertfx').classList.add('on');
-  }
+  if(B.hidden){ A.ghost(); toast('!! UNKNOWN SIGNATURE — SWITCH OPTICS TO LOCATE','violet'); return; }
+  A.warn();
+  let msg;
+  if(B.jams)           msg=`!! ${B.name} — ${n.desig} BLINDING DRONES · CLICK MANUALLY`;
+  else if(B.power)     msg=`!! ${B.name} — ${n.desig} BLEEDING ${(B.power*G.sector*threatMul()).toFixed(1)}PW OFF THE GRID`;
+  else if(B.killYield) msg=`!! ${B.name} — ${n.desig} YIELD OFFLINE · FIREWALL USELESS`;
+  else                 msg=`!! ${B.name} — ${n.desig} DRAINING ⏣${stealRate(n).toFixed(1)}/s`;
+  toast(msg,'red');
+  document.getElementById('alertfx').classList.add('on');
+}
+function spawnIntrusion(){
+  spawnOne();
+  if(G.threat>=74&&Math.random()<.5) spawnOne();        /* OVERRUN: they arrive in pairs */
 }
 function hitIntrusion(n,amt,byDrone){
   if(!n.intr) return;
   if(BTYPE[n.intr.type].hidden&&!breachVisible(n)&&!byDrone) return;
+  if(byDrone&&droneJammed(n)) return;                    /* jammed: manual clicks only */
   n.intr.hp-=amt*(byDrone&&BTYPE[n.intr.type].killYield?2:1);
   if(!byDrone){ A.hit(); spawnPulse(n.x,n.z,BTYPE[n.intr.type].col,.3); }
   if(n.intr.hp<=0) purge(n,byDrone);
@@ -1036,9 +1141,9 @@ function failIntrusion(n){
   if(spreads){
     const v=n.links.filter(o=>!o.offline&&!o.intr);
     if(v.length){ const t=pick(v); startBreach(t,'worm');
-      toast(`⚠ WORM SPREAD → ${t.desig}`,'red'); document.getElementById('alertfx').classList.add('on'); }
+      toast(`!! WORM SPREAD → ${t.desig}`,'red'); document.getElementById('alertfx').classList.add('on'); }
   }
-  toast(`✖ ${n.desig} SEIZED — ⏣${lump} STOLEN · REPAIR ⏣${costRepair(n)}`,'red');
+  toast(`X ${n.desig} SEIZED — ⏣${lump} STOLEN · REPAIR ⏣${costRepair(n)}`,'red');
   if(!G.intrusions.some(x=>!BTYPE[x.intr.type].hidden)) document.getElementById('alertfx').classList.remove('on');
   if(G.threat>=100) lockdown();
 }
@@ -1149,11 +1254,12 @@ function updateAbilUI(){
     el.querySelector('.cd').style.transform='scaleY('+(G.cd[k]/CD[k])+')';
     el.classList.toggle('rdy',G.cd[k]<=0);
   }
-  document.getElementById('ab-over').classList.toggle('act',G.overT>0);
-  document.getElementById('ab-trace').classList.toggle('act',G.traceT>0);
+  document.getElementById('ab-over').classList.toggle('hot',G.overT>0);
+  document.getElementById('ab-trace').classList.toggle('hot',G.traceT>0);
 }
 ['pulse','over','trace'].forEach(k=>{
   const el=document.getElementById('ab-'+k);
+  el.querySelector('.ic').innerHTML=ICON[k];
   el.addEventListener('click',e=>{e.stopPropagation();A.init();A.resume();useAbility(k);});
   el.addEventListener('pointerenter',()=>{
     abTip.style.display='block';
@@ -1194,12 +1300,12 @@ function closeRadial(){ radial.innerHTML=''; actions=[]; picker=null; sel=null; 
 function openClassPicker(plot){
   radial.innerHTML=''; actions=[]; sel={type:'pad',plot};
   const w=document.createElement('div'); w.className='picker';
-  let html=`<div class="hd"><span>SELECT NODE CLASS</span><span>⚡ ${Math.round(powerGen())}/${Math.round(powerDraw())}</span></div>`;
+  let html=`<div class="hd"><span>SELECT NODE CLASS</span><span>PW ${Math.round(powerGen())}/${Math.round(powerDraw())}</span></div>`;
   ROLEKEYS.forEach(r=>{
     const R=ROLES[r], c=costRole(r), aff=G.credits>=c;
-    const pw=R.gen>0?`<span style="color:var(--green)">+${R.gen}⚡</span>`:`<span style="opacity:.55">−${R.draw}⚡</span>`;
+    const pw=R.gen>0?`<span style="color:var(--green)">+${R.gen}PW</span>`:`<span style="opacity:.55">−${R.draw}PW</span>`;
     html+=`<div class="tile ${aff?'':'no'}" data-role="${r}">
-      <div class="ti">${R.ic}</div><div class="tn">${R.name}</div>
+      <div class="ti">${ICON[R.ic]}</div><div class="tn">${R.name}</div>
       <div class="td">${R.desc}</div><div class="tc">⏣${fmt(c)} ${pw}</div></div>`;
   });
   w.innerHTML=html;
@@ -1218,28 +1324,28 @@ function openRadial(target){
   const list=[];
   if(target.type==='node'){
     const n=target.node, R=ROLES[n.role];
-    if(n.offline) list.push({ic:'✚',nm:'REPAIR',cost:costRepair(n),col:'var(--green)',run:()=>{
+    if(n.offline) list.push({ic:'repair',nm:'REPAIR',cost:costRepair(n),col:'var(--green)',run:()=>{
       if(!spend(costRepair(n)))return; n.offline=false; n.integrity=100; styleNode(n); refreshBastionRings();
       A.up(); spawnPulse(n.x,n.z,PAL.green); toast(`${n.desig} BACK ONLINE`,'green'); openRadial(target); }});
-    if(n.tier<BAL.maxTier) list.push({ic:'▲',nm:'UPGRADE',cost:costUpgrade(n),
-      tip:R.gen>0?`+${R.gen}⚡`:`−${R.draw.toFixed(1)}⚡`,run:()=>{
+    if(n.tier<BAL.maxTier) list.push({ic:'upgrade',nm:'UPGRADE',cost:costUpgrade(n),
+      tip:R.gen>0?`+${R.gen}PW`:`−${R.draw.toFixed(1)}PW`,run:()=>{
       if(!spend(costUpgrade(n)))return; n.tier++; rebuildNode(n); A.up(); spawnPulse(n.x,n.z,mode.accent);
       toast(`${n.desig} → TIER ${n.tier}`,'accent'); openRadial(target); }});
-    else list.push({ic:'★',nm:'MAX TIER',cost:0,dis:true});
-    list.push({ic:'⛨',nm:'FIREWALL '+n.fw,cost:costFw(n),col:'var(--green)',
+    else list.push({ic:'max',nm:'MAX TIER',cost:0,dis:true});
+    list.push({ic:'fw',nm:'FIREWALL '+n.fw,cost:costFw(n),col:'var(--ice)',
       tip:`${Math.round(fwBlock(n)*100)}%→${Math.round(Math.min(BAL.fwMaxBlock,(effFw(n)+1)*BAL.fwBlockPer)*100)}%`,run:()=>{
       if(!spend(costFw(n)))return; n.fw++; rebuildNode(n); A.up();
       toast(`${n.desig} ICE ${n.fw} — BLOCKS ${Math.round(fwBlock(n)*100)}%`,'green'); openRadial(target); }});
   } else {
-    list.push({ic:'⟳',nm:'HARVEST',cost:0,free:true,run:()=>{
+    list.push({ic:'harvest',nm:'HARVEST',cost:0,free:true,run:()=>{
       if(G.harvestCd>0){A.nope();return;}
       const v=Math.floor(BAL.harvestBase*Math.pow(1.55,G.sector-1)*rnd(.85,1.3));
       G.credits+=v; G.totalEarned+=v; floatAt(new THREE.Vector3(0,50,0),`+${v}`,'var(--amber)');
       A.coin(); G.harvestCd=BAL.harvestCd; spawnPulse(0,0,PAL.amber,1.5); }});
-    list.push({ic:'⊕',nm:'EXPAND',cost:costExpand(),col:'var(--green)',
+    list.push({ic:'expand',nm:'EXPAND',cost:costExpand(),col:'var(--green)',
       tip:G.sector>=BAL.maxRing?'MAX':`RING ${G.sector+1}`,dis:G.sector>=BAL.maxRing,
       run:()=>{ expandSector(false); openRadial(target); }});
-    list.push({ic:'✈',nm:'DRONE',cost:costDrone(),tip:`${G.drones.length}/${droneCap()}`,run:()=>{
+    list.push({ic:'drone',nm:'DRONE',cost:costDrone(),tip:`${G.drones.length}/${droneCap()}`,run:()=>{
       if(G.drones.length>=droneCap()){A.nope();toast('DRONE CAPACITY REACHED — BUILD A HANGAR','amber');return;}
       if(!spend(costDrone()))return; addDrone(); A.build(); openRadial(target); }});
   }
@@ -1247,7 +1353,7 @@ function openRadial(target){
     const el=document.createElement('div'); el.className='act';
     if(a.dis||(!a.free&&a.cost&&G.credits<a.cost)) el.classList.add('no');
     if(a.free) el.classList.add('free');
-    el.innerHTML=`<div class="disc" style="${a.col?'border-color:'+a.col+';color:'+a.col:''}">${a.ic}</div>
+    el.innerHTML=`<div class="disc" style="${a.col?'border-color:'+a.col+';color:'+a.col:''}">${ICON[a.ic]||a.ic}</div>
       <div class="nm">${a.nm}</div><div class="cost">${a.free?'FREE':a.cost?'⏣'+fmt(a.cost):''}</div>
       ${a.tip?`<div class="tip">${a.tip}</div>`:''}`;
     el.addEventListener('click',ev=>{ev.stopPropagation();A.resume();if(a.dis){A.nope();return;}if(a.run)a.run();});
@@ -1336,18 +1442,19 @@ addEventListener('pointermove',e=>{
     const n=h.node, R=ROLES[n.role];
     const L=n.links.filter(o=>!o.offline).length;
     const sp=n.links.filter(o=>o.role==='spire'&&!o.offline).length;
-    show(`<b>${R.ic} ${n.desig}</b> <span style="opacity:.5">${R.name}</span><br>
+    show(`<b>${ilbl(R.ic)} ${n.desig}</b> <span style="opacity:.5">${R.name}</span><br>
       TIER ${n.tier} · ICE ${effFw(n)}${effFw(n)>n.fw?` <span style="color:var(--green)">(+${effFw(n)-n.fw} BASTION)</span>`:''}
       <span style="opacity:.5">blocks ${Math.round(fwBlock(n)*100)}%</span><br>
       LINKS ${L}${L===0?' <span style="color:var(--red)">ISOLATED −25%</span>':` <span style="color:var(--green)">+${Math.round(BAL.linkBonus*Math.min(L,BAL.linkMax)*100)}%</span>`}
       ${sp?` · <span style="color:var(--green)">+${sp*15}% SPIRE</span>`:''}<br>
-      ${R.gen>0?`<span style="color:var(--green)">+${R.gen*n.tier}⚡ GENERATED</span>`:`<span style="opacity:.6">−${(R.draw*n.tier).toFixed(1)}⚡ DRAW</span>`}<br>
+      ${R.gen>0?`<span style="color:var(--green)">+${R.gen*n.tier}PW GENERATED</span>`:`<span style="opacity:.6">−${(R.draw*n.tier).toFixed(1)}PW DRAW</span>`}<br>
       ${n.offline?'<span style="color:var(--red)">OFFLINE — NEEDS REPAIR</span>'
         :'<span style="color:var(--green)">+'+nodeYield(n).toFixed(2)+' CR/s</span>'}
-      ${n.intr&&breachVisible(n)?`<br><span style="color:${hex(BTYPE[n.intr.type].col)}">⚠ ${BTYPE[n.intr.type].name} — CLICK ×${Math.ceil(n.intr.hp)}</span>`:''}`);
+      ${n.intr&&breachVisible(n)?`<br><span style="color:${hex(BTYPE[n.intr.type].col)}">!! ${BTYPE[n.intr.type].name} — CLICK ×${Math.ceil(n.intr.hp)}</span>`:''}
+      ${n.intr&&droneJammed(n)?`<br><span style="color:var(--magenta)">DRONES JAMMED — MANUAL PURGE ONLY</span>`:''}`);
   }
   else if(h&&h.type==='pad') show(`<span style="opacity:.6">EMPTY PLOT · RING ${h.plot.ring}</span><br>CLICK TO CHOOSE A CLASS`);
-  else if(h&&h.type==='core') show(`<b>ANANKE CORE SPIRE</b><br><span style="opacity:.6">HARVEST · EXPAND · DEPLOY</span><br><span style="color:var(--green)">+${BAL.corePower}⚡ BASE POWER</span>`);
+  else if(h&&h.type==='core') show(`<b>ANANKE CORE SPIRE</b><br><span style="opacity:.6">HARVEST · EXPAND · DEPLOY</span><br><span style="color:var(--green)">+${BAL.corePower}PW BASE POWER</span>`);
   else if(h&&h.type==='cache') show(`<span style="color:var(--amber)">◆ DATA CACHE — CLICK TO INTERCEPT</span>`);
   else lbl.style.display='none';
   const canBuild=G.credits>=costBuild();
@@ -1385,7 +1492,7 @@ tutWrap.addEventListener('click',e=>{ if(e.target===tutWrap) closeTut(); });
 function toggleAuto(){
   G.auto=!G.auto;
   const b=document.getElementById('auto');
-  b.classList.toggle('on',G.auto); b.textContent=G.auto?'■ AUTO':'▶ AUTO';
+  b.classList.toggle('on',G.auto); b.textContent=G.auto?'AUTO ON':'AUTO';
   if(G.auto){ closeRadial(); A.up(); toast('AUTONOMOUS GOVERNANCE ENGAGED','green');
     hint('AUTO MODE — THE GRID BUILDS, POWERS AND DEFENDS ITSELF',5000); }
   else { A.click(); toast('MANUAL CONTROL RESTORED','accent'); }
@@ -1470,12 +1577,16 @@ function updateStrip(){
   rt.parentElement.style.color=G.overT>0?'var(--amber)':'var(--green)';
   const st=totalSteal(), se=document.getElementById('s-steal');
   se.classList.toggle('on',st>0); if(st>0) se.textContent='−'+st.toFixed(1);
-  const gen=powerGen(), draw=powerDraw(), pe=document.getElementById('s-pow');
-  pe.textContent=Math.round(gen)+'/'+Math.round(draw);
+  const loss=powerLoss(), gen=powerGen(), draw=powerDraw(), pe=document.getElementById('s-pow');
+  pe.innerHTML=Math.round(gen)+'/'+Math.round(draw)+
+    (loss>0?` <span style="color:var(--aqua);font-size:10px">−${loss.toFixed(1)}</span>`:'');
   pe.classList.toggle('short',draw>gen);
   document.getElementById('brownfx').classList.toggle('on',draw>gen);
   document.getElementById('s-sector').textContent=G.sector;
   document.getElementById('s-nodes').textContent=`${G.nodes.length}/${G.plots.length} PLOTS`;
+  const tier=threatTier();
+  const tl=document.getElementById('s-threat'), tn=document.getElementById('s-threat-note');
+  tl.textContent=tier.name; tl.style.color=tier.col; tn.textContent=tier.note;
   const lit=Math.round(G.threat/100*14);
   [...tw.children].forEach((s,i)=>{
     if(i<lit){ const c=i/14>.7?'var(--red)':i/14>.42?'var(--amber)':'var(--green)';
@@ -1496,13 +1607,18 @@ function drawSVG(t){
     const B=BTYPE[n.intr.type], col=hex(B.col);
     const p=project(new THREE.Vector3(n.x,n.height+6,n.z)); if(p.behind) continue;
     const frac=clamp(n.intr.t/n.intr.maxT,0,1), R=30, a1=-Math.PI/2+frac*6.2832;
+    let sub;
+    if(B.jams)           sub='DRONES BLIND';
+    else if(B.power)     sub=`−${(B.power*G.sector*threatMul()*(B.fw?(1-fwBlock(n)):1)).toFixed(1)}PW/s`;
+    else if(B.killYield) sub='YIELD 0';
+    else                 sub=`−⏣${stealRate(n).toFixed(1)}/s`;
     out+=`<circle cx="${p.x}" cy="${p.y}" r="${R}" fill="none" stroke="${col}" stroke-opacity=".18" stroke-width="4"/>
       <path d="M ${p.x} ${p.y-R} A ${R} ${R} 0 ${frac>.5?1:0} 1 ${p.x+Math.cos(a1)*R} ${p.y+Math.sin(a1)*R}"
         fill="none" stroke="${col}" stroke-width="4" style="filter:drop-shadow(0 0 6px ${col})"/>
       <text x="${p.x}" y="${p.y+5}" text-anchor="middle" font-family="Orbitron,monospace" font-size="15"
         font-weight="800" fill="#fff" style="filter:drop-shadow(0 0 6px ${col})">${Math.ceil(n.intr.hp)}</text>
       <text x="${p.x}" y="${p.y-R-10}" text-anchor="middle" font-family="Orbitron,monospace" font-size="9"
-        fill="${col}" letter-spacing="1.5">${B.name}${B.killYield?' · YIELD 0':` · −⏣${stealRate(n).toFixed(1)}/s`}</text>`;
+        fill="${col}" letter-spacing="1.5">${B.name} · ${sub}</text>`;
   }
   if(sel){
     let a,label;
@@ -1541,7 +1657,7 @@ function animate(){
   if(G.traceT>0) G.traceT-=dt;
 
   const brown=powerDraw()>powerGen();
-  if(brown&&!brownWarn){ brownWarn=true; A.brown(); toast('⚡ BROWNOUT — POWER DEFICIT THROTTLING YIELD','amber'); }
+  if(brown&&!brownWarn){ brownWarn=true; A.brown(); toast('BROWNOUT — POWER DEFICIT THROTTLING YIELD','amber'); }
   if(!brown) brownWarn=false;
 
   for(const n of G.intrusions.slice()){
@@ -1561,7 +1677,8 @@ function animate(){
   if(G.nodes.length>=2){
     G.intruT-=dt;
     if(G.intruT<=0){ spawnIntrusion();
-      const [a,b]=BAL.intrusionEvery; G.intruT=rnd(a,b)/(1+G.sector*.16); }
+      const [a,b]=BAL.intrusionEvery;
+      G.intruT=rnd(a,b)/((1+G.sector*.16)*threatSpawnMul()); }
   }
   G.cacheT-=dt;
   if(G.cacheT<=0){ spawnCache(); G.cacheT=rnd(...BAL.cacheEvery)/(1+roleCount('nexus')*BAL.nexusCache); }
@@ -1584,6 +1701,13 @@ function animate(){
     alertCol.material.color.setHex(BTYPE[focus.intr.type].col);
     alertCol.material.opacity=.05+Math.abs(Math.sin(t*3.4))*.09; }
   else alertCol.visible=false;
+  const jams=G.intrusions.filter(n=>BTYPE[n.intr.type].jams);
+  jamRings.children.forEach((m,i)=>{
+    const j=jams[i];
+    if(!j){ m.visible=false; return; }
+    m.visible=true; m.position.set(j.x,.34,j.z);
+    m.material.opacity=.15+Math.abs(Math.sin(t*2.6))*.16;
+  });
 
   const pa=pkGeo.attributes.position.array, ca=pkGeo.attributes.color.array;
   const tc=new THREE.Color(mode.tube);
@@ -1623,7 +1747,7 @@ function animate(){
       d.position.lerp(tg,1-Math.pow(.02,dt));
       if(d.position.distanceTo(new THREE.Vector3(u.target.x,u.target.height*.8+8,u.target.z))<BAL.droneRange)
         hitIntrusion(u.target,BAL.droneDps*ddm*dt,true);
-      const c=BTYPE[u.target.intr.type].col;
+      const c=droneJammed(u.target)?PAL.magenta:BTYPE[u.target.intr.type].col;
       u.mat.color.setHex(c); u.gm.color.setHex(c); u.bm.color.setHex(c);
       u.gm.opacity=.4+Math.abs(Math.sin(t*7+i))*.5;
     } else {
@@ -1645,7 +1769,7 @@ function animate(){
   bastionRings.children.forEach((m,i)=>m.material.opacity=.14+Math.sin(t*1.3+i)*.08);
   G.nodes.forEach(n=>{
     if(n.mesh.userData.beacon) n.mesh.userData.beacon.material.opacity=.35+Math.abs(Math.sin(t*2+n.flick))*.65;
-    if(n.mesh.userData.fwShell) n.mesh.userData.fwShell.opacity=.03+n.fw*.022+Math.sin(t*2+n.flick)*.012;
+    if(n.mesh.userData.fwMat) n.mesh.userData.fwMat.opacity=.44+Math.sin(t*1.7+n.flick)*.11;
     if(n.offline&&!n.intr) n.mesh.userData.lines.forEach(m=>m.opacity=Math.random()<.06?.05:.2);
   });
 
@@ -1673,6 +1797,8 @@ function animate(){
 /* ==========================================================
    WIRING + INIT
    ========================================================== */
+document.getElementById('gear').innerHTML=ICON.gear;
+document.getElementById('helpbtn').innerHTML=ICON.help+'HELP';
 document.getElementById('auto').addEventListener('click',toggleAuto);
 document.getElementById('gear').addEventListener('click',()=>document.getElementById('tray').classList.toggle('open'));
 document.querySelectorAll('#tray [data-mode]').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
